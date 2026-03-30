@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -44,5 +45,14 @@ public class AuthController {
                 user.getRole().getRoleName(),
                 user.getBranch() != null ? user.getBranch().getBranchId() : null
         ));
+    }
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @GetMapping("/test-hash")
+    public ResponseEntity<?> testHash() {
+        String hash = passwordEncoder.encode("password");
+        boolean matches = passwordEncoder.matches("password", "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.");
+        return ResponseEntity.ok("Hash mới: " + hash + " | Hash cũ khớp không: " + matches);
     }
 }

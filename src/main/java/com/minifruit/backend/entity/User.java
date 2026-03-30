@@ -2,6 +2,7 @@ package com.minifruit.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @Entity
@@ -23,4 +24,5 @@ public class User {
     private Branch branch;
 
     private Boolean status = true;
+
 }

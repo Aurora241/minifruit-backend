@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniFruit — Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">🍎</div>
+            <span>MiniFruit</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-label">Tổng quan</div>
+                <a class="nav-item active" href="dashboard.html">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-label">Quản lý</div>
+                <a class="nav-item" href="pages/products.html">
+                    <span class="icon">🛒</span> Sản phẩm
+                </a>
+                <a class="nav-item" href="pages/inventory.html">
+                    <span class="icon">📦</span> Kho hàng
+                </a>
+                <a class="nav-item" href="pages/orders.html">
+                    <span class="icon">🧾</span> Hóa đơn
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-label">Hệ thống</div>
+                <a class="nav-item" href="pages/users.html">
+                    <span class="icon">👥</span> Người dùng
+                </a>
+                <a class="nav-item" href="pages/branches.html">
+                    <span class="icon">🏪</span> Chi nhánh
+                </a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar" id="avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name" id="display-name">Admin</div>
+                    <div class="user-role" id="display-role">ADMIN</div>
+                </div>
+                <button class="btn-logout" onclick="logout()" title="Đăng xuất">⏻</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main-content">
+        <div class="topbar">
+            <div class="topbar-title">Dashboard</div>
+            <div class="topbar-actions">
+                <button class="badge-notif">🔔<span></span></button>
+            </div>
+        </div>
+        <div class="page-content">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon green">🛒</div>
+                    <div>
+                        <div class="stat-value" id="stat-products">—</div>
+                        <div class="stat-label">Sản phẩm</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">🏪</div>
+                    <div>
+                        <div class="stat-value" id="stat-branches">—</div>
+                        <div class="stat-label">Chi nhánh</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon amber">👥</div>
+                    <div>
+                        <div class="stat-value" id="stat-users">—</div>
+                        <div class="stat-label">Người dùng</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">⚠️</div>
+                    <div>
+                        <div class="stat-value" id="stat-lowstock">—</div>
+                        <div class="stat-label">Sắp hết hàng</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent orders -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🧾 Hóa đơn gần đây</div>
+                    <a href="pages/orders.html" class="btn btn-outline btn-sm">Xem tất cả</a>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Chi nhánh</th>
+                            <th>Nhân viên</th>
+                            <th>Tổng tiền</th>
+                            <th>Thanh toán</th>
+                            <th>Thời gian</th>
+                        </tr>
+                        </thead>
+                        <tbody id="orders-table">
+                        <tr><td colspan="6" class="empty-state">
+                            <div class="icon">📭</div>
+                            <p>Đang tải...</p>
+                        </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script>
+    requireAuth();
+    const user = getUser();
+    document.getElementById('display-name').textContent = user.username;
+    document.getElementById('display-role').textContent = user.role;
+    document.getElementById('avatar').textContent = user.username[0].toUpperCase();
+
+    async function loadDashboard() {
+        const [products, branches, users] = await Promise.all([
+            api.get('/products'),
+            api.get('/branches'),
+            api.get('/users'),
+        ]);
+        document.getElementById('stat-products').textContent = products?.length ?? 0;
+        document.getElementById('stat-branches').textContent = branches?.length ?? 0;
+        document.getElementById('stat-users').textContent = users?.length ?? 0;
+
+        // Load orders từ chi nhánh đầu tiên nếu có
+        if (branches?.length > 0) {
+            const orders = await api.get(`/orders/branch/${branches[0].branchId}`);
+            const tbody = document.getElementById('orders-table');
+            if (!orders?.length) {
+                tbody.innerHTML = `<tr><td colspan="6">
+                    <div class="empty-state"><div class="icon">📭</div><p>Chưa có hóa đơn</p></div>
+                </td></tr>`;
+                return;
+            }
+            tbody.innerHTML = orders.slice(0, 8).map(o => `
+                <tr>
+                    <td>#${o.orderId}</td>
+                    <td>${o.branch?.branchName ?? '—'}</td>
+                    <td>${o.user?.fullName ?? o.user?.username ?? '—'}</td>
+                    <td><strong>${Number(o.totalAmount).toLocaleString('vi-VN')}đ</strong></td>
+                    <td><span class="badge badge-info">${o.paymentMethod ?? 'CASH'}</span></td>
+                    <td>${new Date(o.createdAt).toLocaleString('vi-VN')}</td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    loadDashboard();
+</script>
+</body>
+</html>
