@@ -4,27 +4,37 @@ function getToken() {
     return localStorage.getItem('token');
 }
 
+function getIndexPath() {
+    const depth = window.location.pathname.split('/').length - 2;
+    return depth > 1 ? '../'.repeat(depth - 1) + 'index.html' : './index.html';
+}
+
 async function request(method, path, body = null) {
+    const token = getToken();
     const opts = {
         method,
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getToken()}`
+            'Authorization': `Bearer ${token}`
         }
     };
     if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(BASE_URL + path, opts);
-    if (res.status === 403 || res.status === 401) {
-        localStorage.clear();
-        window.location.href = '/index.html';
-        return;
+    try {
+        const res = await fetch(BASE_URL + path, opts);
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = getIndexPath();
+            return;
+        }
+        return res.json();
+    } catch (e) {
+        console.error('API Error:', e);
     }
-    return res.json();
 }
 
 const api = {
-    get: (path) => request('GET', path),
-    post: (path, body) => request('POST', path, body),
-    put: (path, body) => request('PUT', path, body),
-    delete: (path) => request('DELETE', path),
+    get:    (path)        => request('GET',    path),
+    post:   (path, body)  => request('POST',   path, body),
+    put:    (path, body)  => request('PUT',    path, body),
+    delete: (path)        => request('DELETE', path),
 };

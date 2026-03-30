@@ -8,41 +8,12 @@
 </head>
 <body>
 <div class="app-layout">
-    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-logo">
             <div class="logo-icon">🍎</div>
             <span>MiniFruit</span>
         </div>
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <div class="nav-label">Tổng quan</div>
-                <a class="nav-item active" href="dashboard.html">
-                    <span class="icon">📊</span> Dashboard
-                </a>
-            </div>
-            <div class="nav-section">
-                <div class="nav-label">Quản lý</div>
-                <a class="nav-item" href="pages/products.html">
-                    <span class="icon">🛒</span> Sản phẩm
-                </a>
-                <a class="nav-item" href="pages/inventory.html">
-                    <span class="icon">📦</span> Kho hàng
-                </a>
-                <a class="nav-item" href="pages/orders.html">
-                    <span class="icon">🧾</span> Hóa đơn
-                </a>
-            </div>
-            <div class="nav-section">
-                <div class="nav-label">Hệ thống</div>
-                <a class="nav-item" href="pages/users.html">
-                    <span class="icon">👥</span> Người dùng
-                </a>
-                <a class="nav-item" href="pages/branches.html">
-                    <span class="icon">🏪</span> Chi nhánh
-                </a>
-            </div>
-        </nav>
+        <nav class="sidebar-nav" id="sidebar-nav"></nav>
         <div class="sidebar-footer">
             <div class="user-card">
                 <div class="user-avatar" id="avatar">A</div>
@@ -55,16 +26,11 @@
         </div>
     </aside>
 
-    <!-- Main -->
     <div class="main-content">
         <div class="topbar">
             <div class="topbar-title">Dashboard</div>
-            <div class="topbar-actions">
-                <button class="badge-notif">🔔<span></span></button>
-            </div>
         </div>
         <div class="page-content">
-            <!-- Stats -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon green">🛒</div>
@@ -96,7 +62,6 @@
                 </div>
             </div>
 
-            <!-- Recent orders -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">🧾 Hóa đơn gần đây</div>
@@ -115,10 +80,7 @@
                         </tr>
                         </thead>
                         <tbody id="orders-table">
-                        <tr><td colspan="6" class="empty-state">
-                            <div class="icon">📭</div>
-                            <p>Đang tải...</p>
-                        </td></tr>
+                        <tr><td colspan="6"><div class="empty-state"><div class="icon">⏳</div><p>Đang tải...</p></div></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -131,10 +93,8 @@
 <script src="js/api.js"></script>
 <script>
     requireAuth();
-    const user = getUser();
-    document.getElementById('display-name').textContent = user.username;
-    document.getElementById('display-role').textContent = user.role;
-    document.getElementById('avatar').textContent = user.username[0].toUpperCase();
+    buildSidebar();
+    initUser();
 
     async function loadDashboard() {
         const [products, branches, users] = await Promise.all([
@@ -146,14 +106,14 @@
         document.getElementById('stat-branches').textContent = branches?.length ?? 0;
         document.getElementById('stat-users').textContent = users?.length ?? 0;
 
-        // Load orders từ chi nhánh đầu tiên nếu có
         if (branches?.length > 0) {
+            const lowStock = await api.get(`/inventory/low-stock/${branches[0].branchId}`);
+            document.getElementById('stat-lowstock').textContent = lowStock?.length ?? 0;
+
             const orders = await api.get(`/orders/branch/${branches[0].branchId}`);
             const tbody = document.getElementById('orders-table');
             if (!orders?.length) {
-                tbody.innerHTML = `<tr><td colspan="6">
-                    <div class="empty-state"><div class="icon">📭</div><p>Chưa có hóa đơn</p></div>
-                </td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">📭</div><p>Chưa có hóa đơn</p></div></td></tr>`;
                 return;
             }
             tbody.innerHTML = orders.slice(0, 8).map(o => `

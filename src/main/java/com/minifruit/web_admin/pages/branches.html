@@ -12,23 +12,7 @@
             <div class="logo-icon">🍎</div>
             <span>MiniFruit</span>
         </div>
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <div class="nav-label">Tổng quan</div>
-                <a class="nav-item" href="../dashboard.html"><span class="icon">📊</span> Dashboard</a>
-            </div>
-            <div class="nav-section">
-                <div class="nav-label">Quản lý</div>
-                <a class="nav-item" href="products.html"><span class="icon">🛒</span> Sản phẩm</a>
-                <a class="nav-item" href="inventory.html"><span class="icon">📦</span> Kho hàng</a>
-                <a class="nav-item" href="orders.html"><span class="icon">🧾</span> Hóa đơn</a>
-            </div>
-            <div class="nav-section">
-                <div class="nav-label">Hệ thống</div>
-                <a class="nav-item" href="users.html"><span class="icon">👥</span> Người dùng</a>
-                <a class="nav-item active" href="branches.html"><span class="icon">🏪</span> Chi nhánh</a>
-            </div>
-        </nav>
+        <nav class="sidebar-nav" id="sidebar-nav"></nav>
         <div class="sidebar-footer">
             <div class="user-card">
                 <div class="user-avatar" id="avatar">A</div>
@@ -104,10 +88,8 @@
 <script src="../js/api.js"></script>
 <script>
     requireAuth();
-    const user = getUser();
-    document.getElementById('display-name').textContent = user.username;
-    document.getElementById('display-role').textContent = user.role;
-    document.getElementById('avatar').textContent = user.username[0].toUpperCase();
+    buildSidebar();
+    initUser();
 
     let allBranches = [];
 

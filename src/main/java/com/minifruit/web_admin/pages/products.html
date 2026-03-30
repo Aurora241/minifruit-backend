@@ -12,23 +12,7 @@
             <div class="logo-icon">🍎</div>
             <span>MiniFruit</span>
         </div>
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <div class="nav-label">Tổng quan</div>
-                <a class="nav-item" href="../dashboard.html"><span class="icon">📊</span> Dashboard</a>
-            </div>
-            <div class="nav-section">
-                <div class="nav-label">Quản lý</div>
-                <a class="nav-item active" href="products.html"><span class="icon">🛒</span> Sản phẩm</a>
-                <a class="nav-item" href="inventory.html"><span class="icon">📦</span> Kho hàng</a>
-                <a class="nav-item" href="orders.html"><span class="icon">🧾</span> Hóa đơn</a>
-            </div>
-            <div class="nav-section">
-                <div class="nav-label">Hệ thống</div>
-                <a class="nav-item" href="users.html"><span class="icon">👥</span> Người dùng</a>
-                <a class="nav-item" href="branches.html"><span class="icon">🏪</span> Chi nhánh</a>
-            </div>
-        </nav>
+        <nav class="sidebar-nav" id="sidebar-nav"></nav>
         <div class="sidebar-footer">
             <div class="user-card">
                 <div class="user-avatar" id="avatar">A</div>
@@ -80,7 +64,6 @@
     </div>
 </div>
 
-<!-- Modal thêm/sửa sản phẩm -->
 <div class="modal-overlay" id="modal">
     <div class="modal">
         <div class="modal-header">
@@ -133,10 +116,8 @@
 <script src="../js/api.js"></script>
 <script>
     requireAuth();
-    const user = getUser();
-    document.getElementById('display-name').textContent = user.username;
-    document.getElementById('display-role').textContent = user.role;
-    document.getElementById('avatar').textContent = user.username[0].toUpperCase();
+    buildSidebar();
+    initUser();
 
     let allProducts = [];
 
@@ -155,13 +136,11 @@
             api.get('/categories')
         ]);
         allProducts = products || [];
-
-        // Populate category select
         const sel = document.getElementById('category-id');
+        sel.innerHTML = '<option value="">-- Chọn danh mục --</option>';
         (categories || []).forEach(c => {
             sel.innerHTML += `<option value="${c.categoryId}">${c.categoryName}</option>`;
         });
-
         renderTable(allProducts);
     }
 
@@ -197,12 +176,9 @@
     function openModal(reset = true) {
         if (reset) {
             document.getElementById('modal-title').textContent = 'Thêm sản phẩm';
-            document.getElementById('product-id').value = '';
-            document.getElementById('sku').value = '';
-            document.getElementById('barcode').value = '';
-            document.getElementById('product-name').value = '';
-            document.getElementById('cost-price').value = '';
-            document.getElementById('selling-price').value = '';
+            ['product-id','sku','barcode','product-name','cost-price','selling-price'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
             document.getElementById('category-id').value = '';
         }
         document.getElementById('modal').classList.add('open');
@@ -236,9 +212,7 @@
             sellingPrice: document.getElementById('selling-price').value,
             categoryId: document.getElementById('category-id').value || null,
         };
-        if (!body.sku || !body.productName) {
-            toast('Vui lòng nhập SKU và tên sản phẩm', 'error'); return;
-        }
+        if (!body.sku || !body.productName) { toast('Vui lòng nhập SKU và tên sản phẩm', 'error'); return; }
         if (id) {
             await api.put(`/products/${id}`, body);
             toast('Đã cập nhật sản phẩm');

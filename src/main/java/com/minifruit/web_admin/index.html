@@ -31,6 +31,8 @@
 </div>
 <script src="js/auth.js"></script>
 <script>
+    // Thêm dòng này vào đầu script của index.html
+    localStorage.setItem('loginUrl', window.location.href);
     if (localStorage.getItem('token')) window.location.href = 'dashboard.html';
 
     async function doLogin() {
