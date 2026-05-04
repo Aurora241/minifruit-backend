@@ -1,0 +1,5 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "java -Xmx350m -Xms150m -XX:+UseSerialGC -jar target/*.jar"

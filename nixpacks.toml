@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["jdk21_headless", "maven"]
+
+[phases.build]
+cmds = ["mvn clean package -DskipTests"]
+
+[start]
+cmd = "java -Xmx350m -Xms150m -XX:+UseSerialGC -jar target/*.jar"
