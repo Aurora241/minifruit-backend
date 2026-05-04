@@ -1,11 +1,11 @@
+/* v2 */
 const BASE_URL = 'https://minifruit-backend-production-f318.up.railway.app/api';
 function getToken() {
     return localStorage.getItem('token');
 }
 
 function getIndexPath() {
-    const depth = window.location.pathname.split('/').length - 2;
-    return depth > 1 ? '../'.repeat(depth - 1) + 'index.html' : './index.html';
+    return '/index.html';
 }
 
 async function request(method, path, body = null) {
