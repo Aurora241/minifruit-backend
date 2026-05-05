@@ -6,5 +6,7 @@ import java.util.List;
 
 public interface InventoryTicketRepository extends JpaRepository<InventoryTicket, Long> {
     List<InventoryTicket> findByBranchBranchId(Long branchId);
+    List<InventoryTicket> findByBranchBranchIdOrderByCreatedAtDesc(Long branchId);
+    List<InventoryTicket> findAllByOrderByCreatedAtDesc();
     List<InventoryTicket> findByTicketType(String ticketType);
 }

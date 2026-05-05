@@ -39,6 +39,32 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User update(Long id, String fullName, String roleName, Long branchId, String password) {
+        User user = getById(id);
+        if (fullName != null) user.setFullName(fullName);
+        if (roleName != null) {
+            var role = roleRepository.findByRoleName(roleName)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy role"));
+            user.setRole(role);
+        }
+        if (branchId != null) {
+            user.setBranch(branchRepository.findById(branchId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chi nhánh")));
+        } else {
+            user.setBranch(null);
+        }
+        if (password != null && !password.isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(password));
+        }
+        return userRepository.save(user);
+    }
+
+    public void setStatus(Long id, boolean status) {
+        User user = getById(id);
+        user.setStatus(status);
+        userRepository.save(user);
+    }
+
     public void deactivate(Long id) {
         User user = getById(id);
         user.setStatus(false);

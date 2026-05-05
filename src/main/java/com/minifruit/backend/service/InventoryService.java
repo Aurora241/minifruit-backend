@@ -19,6 +19,14 @@ public class InventoryService {
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
 
+    // Lấy danh sách phiếu kho
+    public List<InventoryTicket> getTickets(Long branchId) {
+        if (branchId != null) {
+            return ticketRepository.findByBranchBranchIdOrderByCreatedAtDesc(branchId);
+        }
+        return ticketRepository.findAllByOrderByCreatedAtDesc();
+    }
+
     // Xem tồn kho theo chi nhánh
     public List<ProductStock> getStockByBranch(Long branchId) {
         return stockRepository.findByBranchBranchId(branchId);

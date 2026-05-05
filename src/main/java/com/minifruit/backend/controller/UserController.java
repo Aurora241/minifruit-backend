@@ -37,6 +37,23 @@ public class UserController {
         return userService.create(user, roleName, branchId);
     }
 
+    @PutMapping("/{id}")
+    public User update(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        String roleName = (String) body.get("role");
+        Long branchId = body.get("branchId") != null ?
+                Long.valueOf(body.get("branchId").toString()) : null;
+        String fullName = (String) body.get("fullName");
+        String password = (String) body.get("password");
+        return userService.update(id, fullName, roleName, branchId, password);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> toggleStatus(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        boolean status = Boolean.parseBoolean(body.get("status").toString());
+        userService.setStatus(id, status);
+        return ResponseEntity.ok(status ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản");
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deactivate(@PathVariable Long id) {
         userService.deactivate(id);
