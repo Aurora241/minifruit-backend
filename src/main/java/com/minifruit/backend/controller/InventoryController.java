@@ -22,6 +22,11 @@ public class InventoryController {
         return inventoryService.getTickets(branchId);
     }
 
+    @GetMapping("/tickets/{id}")
+    public Map<String, Object> getTicketDetail(@PathVariable Long id) {
+        return inventoryService.getTicketDetail(id);
+    }
+
     @GetMapping("/stock/{branchId}")
     public List<ProductStock> getStock(@PathVariable Long branchId) {
         return inventoryService.getStockByBranch(branchId);

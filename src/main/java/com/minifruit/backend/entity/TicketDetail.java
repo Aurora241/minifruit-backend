@@ -1,5 +1,6 @@
 package com.minifruit.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -11,6 +12,7 @@ public class TicketDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long detailId;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "ticket_id")
     private InventoryTicket ticket;

@@ -19,6 +19,17 @@ public class InventoryService {
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
 
+    // Lấy chi tiết một phiếu kho (kèm danh sách sản phẩm)
+    public Map<String, Object> getTicketDetail(Long ticketId) {
+        InventoryTicket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu kho"));
+        List<TicketDetail> details = ticketDetailRepository.findByTicketTicketId(ticketId);
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("ticket", ticket);
+        result.put("details", details);
+        return result;
+    }
+
     // Lấy danh sách phiếu kho
     public List<InventoryTicket> getTickets(Long branchId) {
         if (branchId != null) {
