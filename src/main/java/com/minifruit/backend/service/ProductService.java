@@ -46,6 +46,12 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    public Product updateImageUrl(Long id, String imageUrl) {
+        Product product = getById(id);
+        product.setImageUrl(imageUrl);
+        return productRepository.save(product);
+    }
+
     public void delete(Long id) {
         Product product = getById(id);
         product.setStatus(false);

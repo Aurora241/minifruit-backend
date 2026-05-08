@@ -2,9 +2,11 @@ package com.minifruit.backend.controller;
 
 import com.minifruit.backend.entity.Product;
 import com.minifruit.backend.service.ProductService;
+import com.minifruit.backend.service.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +16,7 @@ import java.util.Map;
 public class ProductController {
 
     private final ProductService productService;
+    private final SupabaseStorageService supabaseStorageService;
 
     @GetMapping
     public List<Product> getAll() {
@@ -55,6 +58,32 @@ public class ProductController {
         Long categoryId = body.get("categoryId") != null ?
                 Long.valueOf(body.get("categoryId").toString()) : null;
         return productService.update(id, data, categoryId);
+    }
+
+    @PostMapping("/{id}/image")
+    public ResponseEntity<?> uploadImage(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        String contentType = file.getContentType();
+        if (contentType == null || !List.of("image/jpeg", "image/png", "image/webp").contains(contentType)) {
+            return ResponseEntity.badRequest().body("Chỉ chấp nhận ảnh JPEG, PNG hoặc WEBP");
+        }
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body("Ảnh không được vượt quá 5MB");
+        }
+        try {
+            String ext = switch (contentType) {
+                case "image/png" -> ".png";
+                case "image/webp" -> ".webp";
+                default -> ".jpg";
+            };
+            String filename = "product-" + id + "-" + System.currentTimeMillis() + ext;
+            String url = supabaseStorageService.uploadImage(filename, file.getBytes(), contentType);
+            Product updated = productService.updateImageUrl(id, url);
+            return ResponseEntity.ok(Map.of("imageUrl", updated.getImageUrl()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Upload thất bại: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
