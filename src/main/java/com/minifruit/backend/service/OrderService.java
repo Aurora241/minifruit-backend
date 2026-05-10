@@ -3,6 +3,8 @@ package com.minifruit.backend.service;
 import com.minifruit.backend.entity.*;
 import com.minifruit.backend.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -12,6 +14,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
@@ -57,8 +61,13 @@ public class OrderService {
         BigDecimal total = BigDecimal.ZERO;
 
         for (Map<String, Object> item : items) {
-            Long productId = Long.valueOf(item.get("productId").toString());
-            int qty = Integer.parseInt(item.get("quantity").toString());
+            Object productIdVal = item.get("productId");
+            if (productIdVal == null) throw new IllegalArgumentException("item.productId is required");
+            Object quantityVal = item.get("quantity");
+            if (quantityVal == null) throw new IllegalArgumentException("item.quantity is required");
+            Long productId = Long.valueOf(productIdVal.toString());
+            int qty = Integer.parseInt(quantityVal.toString());
+            log.debug("createOrder item: productId={}, qty={}", productId, qty);
 
             ProductStock stock = stockRepository
                     .findByProductProductIdAndBranchBranchId(productId, branchId)

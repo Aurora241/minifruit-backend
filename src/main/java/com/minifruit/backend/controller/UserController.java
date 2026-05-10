@@ -3,6 +3,8 @@ package com.minifruit.backend.controller;
 import com.minifruit.backend.entity.User;
 import com.minifruit.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -12,6 +14,8 @@ import java.util.Map;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
+
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
 
@@ -49,7 +53,13 @@ public class UserController {
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> toggleStatus(@PathVariable Long id, @RequestBody Map<String, Object> body) {
-        boolean status = Boolean.parseBoolean(body.get("status").toString());
+        Object statusVal = body.get("status");
+        if (statusVal == null) {
+            log.warn("toggleStatus: 'status' field is missing for userId={}", id);
+            return ResponseEntity.badRequest().body("Lỗi: status is required");
+        }
+        boolean status = Boolean.parseBoolean(statusVal.toString());
+        log.info("toggleStatus: userId={}, status={}", id, status);
         userService.setStatus(id, status);
         return ResponseEntity.ok(status ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản");
     }

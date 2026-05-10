@@ -3,6 +3,8 @@ package com.minifruit.backend.service;
 import com.minifruit.backend.entity.*;
 import com.minifruit.backend.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class InventoryService {
+
+    private static final Logger log = LoggerFactory.getLogger(InventoryService.class);
 
     private final InventoryTicketRepository ticketRepository;
     private final TicketDetailRepository ticketDetailRepository;
@@ -60,8 +64,13 @@ public class InventoryService {
         ticketRepository.save(ticket);
 
         for (Map<String, Object> item : items) {
-            Long productId = Long.valueOf(item.get("productId").toString());
-            int qty = Integer.parseInt(item.get("quantity").toString());
+            Object productIdVal = item.get("productId");
+            if (productIdVal == null) throw new IllegalArgumentException("item.productId is required");
+            Object quantityVal = item.get("quantity");
+            if (quantityVal == null) throw new IllegalArgumentException("item.quantity is required");
+            Long productId = Long.valueOf(productIdVal.toString());
+            int qty = Integer.parseInt(quantityVal.toString());
+            log.debug("importStock item: productId={}, qty={}", productId, qty);
 
             TicketDetail detail = new TicketDetail();
             detail.setTicket(ticket);
@@ -97,8 +106,13 @@ public class InventoryService {
         ticketRepository.save(ticket);
 
         for (Map<String, Object> item : items) {
-            Long productId = Long.valueOf(item.get("productId").toString());
-            int qty = Integer.parseInt(item.get("quantity").toString());
+            Object productIdVal = item.get("productId");
+            if (productIdVal == null) throw new IllegalArgumentException("item.productId is required");
+            Object quantityVal = item.get("quantity");
+            if (quantityVal == null) throw new IllegalArgumentException("item.quantity is required");
+            Long productId = Long.valueOf(productIdVal.toString());
+            int qty = Integer.parseInt(quantityVal.toString());
+            log.debug("exportStock item: productId={}, qty={}", productId, qty);
 
             ProductStock stock = stockRepository
                     .findByProductProductIdAndBranchBranchId(productId, branchId)
@@ -133,8 +147,13 @@ public class InventoryService {
         ticketRepository.save(ticket);
 
         for (Map<String, Object> item : items) {
-            Long productId = Long.valueOf(item.get("productId").toString());
-            int qty = Integer.parseInt(item.get("quantity").toString());
+            Object productIdVal = item.get("productId");
+            if (productIdVal == null) throw new IllegalArgumentException("item.productId is required");
+            Object quantityVal = item.get("quantity");
+            if (quantityVal == null) throw new IllegalArgumentException("item.quantity is required");
+            Long productId = Long.valueOf(productIdVal.toString());
+            int qty = Integer.parseInt(quantityVal.toString());
+            log.debug("transferStock item: productId={}, qty={}", productId, qty);
 
             // Trừ kho nguồn
             ProductStock fromStock = stockRepository
