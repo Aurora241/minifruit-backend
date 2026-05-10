@@ -2,11 +2,13 @@ package com.minifruit.backend.controller;
 
 import com.minifruit.backend.entity.Order;
 import com.minifruit.backend.entity.OrderDetail;
+import com.minifruit.backend.repository.UserRepository;
 import com.minifruit.backend.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,6 +22,22 @@ public class OrderController {
     private static final Logger log = LoggerFactory.getLogger(OrderController.class);
 
     private final OrderService orderService;
+    private final UserRepository userRepository;
+
+    private Long resolveUserId(Map<String, Object> body) {
+        Object val = body.get("userId");
+        if (val != null) {
+            try { return Long.valueOf(val.toString()); } catch (NumberFormatException ignored) {}
+        }
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username)
+                .map(u -> u.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy user hiện tại"));
+    }
+
+    private static Map<String, Object> err(String message) {
+        return Map.of("success", false, "message", message);
+    }
 
     @GetMapping("/branch/{branchId}")
     public List<Order> getByBranch(@PathVariable Long branchId) {
@@ -46,10 +64,8 @@ public class OrderController {
         try {
             Object branchIdVal = body.get("branchId");
             if (branchIdVal == null) throw new IllegalArgumentException("branchId is required");
-            Object userIdVal = body.get("userId");
-            if (userIdVal == null) throw new IllegalArgumentException("userId is required");
             Long branchId = Long.valueOf(branchIdVal.toString());
-            Long userId = Long.valueOf(userIdVal.toString());
+            Long userId = resolveUserId(body);
             Long customerId = body.get("customerId") != null ?
                     Long.valueOf(body.get("customerId").toString()) : null;
             String paymentMethod = (String) body.getOrDefault("paymentMethod", "CASH");
@@ -63,10 +79,10 @@ public class OrderController {
                     branchId, userId, customerId, paymentMethod, discount, items));
         } catch (IllegalArgumentException e) {
             log.warn("createOrder bad request: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("Lỗi: " + e.getMessage());
+            return ResponseEntity.badRequest().body(err(e.getMessage()));
         } catch (RuntimeException e) {
             log.error("createOrder error", e);
-            return ResponseEntity.badRequest().body("Lỗi: " + e.getMessage());
+            return ResponseEntity.badRequest().body(err(e.getMessage()));
         }
     }
 }

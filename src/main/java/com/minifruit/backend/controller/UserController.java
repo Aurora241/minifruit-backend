@@ -56,17 +56,18 @@ public class UserController {
         Object statusVal = body.get("status");
         if (statusVal == null) {
             log.warn("toggleStatus: 'status' field is missing for userId={}", id);
-            return ResponseEntity.badRequest().body("Lỗi: status is required");
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "status is required"));
         }
         boolean status = Boolean.parseBoolean(statusVal.toString());
         log.info("toggleStatus: userId={}, status={}", id, status);
         userService.setStatus(id, status);
-        return ResponseEntity.ok(status ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản");
+        String msg = status ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản";
+        return ResponseEntity.ok(Map.of("success", true, "message", msg));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deactivate(@PathVariable Long id) {
         userService.deactivate(id);
-        return ResponseEntity.ok("Đã vô hiệu hóa tài khoản");
+        return ResponseEntity.ok(Map.of("success", true, "message", "Đã vô hiệu hóa tài khoản"));
     }
 }

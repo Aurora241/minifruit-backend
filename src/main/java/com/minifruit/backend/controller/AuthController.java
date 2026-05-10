@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
@@ -31,9 +32,9 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Sai tên đăng nhập hoặc mật khẩu");
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Sai tên đăng nhập hoặc mật khẩu"));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Lỗi: " + e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", e.getMessage()));
         }
 
         var user = userRepository.findByUsername(request.getUsername()).orElseThrow();
@@ -41,6 +42,7 @@ public class AuthController {
 
         return ResponseEntity.ok(new LoginResponse(
                 token,
+                user.getUserId(),
                 user.getUsername(),
                 user.getRole().getRoleName(),
                 user.getBranch() != null ? user.getBranch().getBranchId() : null
